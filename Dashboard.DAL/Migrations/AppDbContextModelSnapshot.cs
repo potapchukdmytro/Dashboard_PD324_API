@@ -67,14 +67,9 @@ namespace Dashboard.DAL.Migrations
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("RoleId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
-
-                    b.HasIndex("RoleId1");
 
                     b.ToTable("AspNetRoleClaims", (string)null);
                 });
@@ -171,14 +166,9 @@ namespace Dashboard.DAL.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("UserId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("AspNetUserClaims", (string)null);
                 });
@@ -197,14 +187,9 @@ namespace Dashboard.DAL.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("UserId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("LoginProvider", "ProviderKey");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("AspNetUserLogins", (string)null);
                 });
@@ -217,19 +202,9 @@ namespace Dashboard.DAL.Migrations
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("RoleId1")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("UserId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId");
-
-                    b.HasIndex("RoleId1");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("AspNetUserRoles", (string)null);
                 });
@@ -245,85 +220,60 @@ namespace Dashboard.DAL.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<Guid?>("UserId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
             modelBuilder.Entity("Dashboard.DAL.Models.Identity.RoleClaim", b =>
                 {
-                    b.HasOne("Dashboard.DAL.Models.Identity.Role", null)
-                        .WithMany()
+                    b.HasOne("Dashboard.DAL.Models.Identity.Role", "Role")
+                        .WithMany("RoleClaims")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Dashboard.DAL.Models.Identity.Role", "Role")
-                        .WithMany("RoleClaims")
-                        .HasForeignKey("RoleId1");
 
                     b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Dashboard.DAL.Models.Identity.UserClaim", b =>
                 {
-                    b.HasOne("Dashboard.DAL.Models.Identity.User", null)
-                        .WithMany()
+                    b.HasOne("Dashboard.DAL.Models.Identity.User", "User")
+                        .WithMany("Claims")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Dashboard.DAL.Models.Identity.User", "User")
-                        .WithMany("Claims")
-                        .HasForeignKey("UserId1");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("Dashboard.DAL.Models.Identity.UserLogin", b =>
                 {
-                    b.HasOne("Dashboard.DAL.Models.Identity.User", null)
-                        .WithMany()
+                    b.HasOne("Dashboard.DAL.Models.Identity.User", "User")
+                        .WithMany("Logins")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Dashboard.DAL.Models.Identity.User", "User")
-                        .WithMany("Logins")
-                        .HasForeignKey("UserId1");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("Dashboard.DAL.Models.Identity.UserRole", b =>
                 {
-                    b.HasOne("Dashboard.DAL.Models.Identity.Role", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Dashboard.DAL.Models.Identity.Role", "Role")
                         .WithMany("UserRoles")
-                        .HasForeignKey("RoleId1");
-
-                    b.HasOne("Dashboard.DAL.Models.Identity.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Dashboard.DAL.Models.Identity.User", "User")
                         .WithMany("UserRoles")
-                        .HasForeignKey("UserId1");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Role");
 
@@ -332,15 +282,11 @@ namespace Dashboard.DAL.Migrations
 
             modelBuilder.Entity("Dashboard.DAL.Models.Identity.UserToken", b =>
                 {
-                    b.HasOne("Dashboard.DAL.Models.Identity.User", null)
-                        .WithMany()
+                    b.HasOne("Dashboard.DAL.Models.Identity.User", "User")
+                        .WithMany("Tokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Dashboard.DAL.Models.Identity.User", "User")
-                        .WithMany("Tokens")
-                        .HasForeignKey("UserId1");
 
                     b.Navigation("User");
                 });

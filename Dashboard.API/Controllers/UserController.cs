@@ -1,34 +1,32 @@
-﻿using Dashboard.DAL;
-using Dashboard.DAL.Models.Identity;
-using Microsoft.AspNetCore.Identity;
+﻿using Dashboard.BLL.Services.UserService;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace Dashboard.API.Controllers
-{  
+{
 
     [ApiController]
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
+        private readonly IUserService _userService;
 
-        public UserController(UserManager<User> userManager)
+        public UserController(IUserService userService)
         {
-            _userManager = userManager;
+            _userService = userService;
         }
 
         [HttpGet("GetAll")]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAllAsync()
         {
-            try
+            var response = await _userService.GetAllUsersAsync();
+
+            if (response.Success)
             {
-                var users = _userManager.Users.AsEnumerable();
-                return Ok(users);
+                return Ok(response);
             }
-            catch (Exception)
+            else
             {
-                return StatusCode(500);
+                return BadRequest(response);
             }
         }
     }
