@@ -40,5 +40,18 @@ namespace Dashboard.API.Controllers
                 return BadRequest(validateResult.Errors);
             }
         }
+
+        [HttpGet("EmailConfirmation")]
+        public async Task<IActionResult> EmailConfirmationAsync(string? u, string? t)
+        {
+            if(string.IsNullOrEmpty(u) || string.IsNullOrEmpty(t))
+            {
+                return NotFound();
+            }
+
+
+
+            return Ok("Пошта підтверджена");
+        }
     }
 }

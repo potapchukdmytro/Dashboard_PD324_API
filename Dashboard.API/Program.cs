@@ -1,4 +1,5 @@
 using Dashboard.BLL.Services.AccountService;
+using Dashboard.BLL.Services.EmailService;
 using Dashboard.BLL.Services.UserService;
 using Dashboard.DAL;
 using Dashboard.DAL.Initializer;
@@ -29,6 +30,7 @@ builder.Services.AddIdentity<User, Role>(options =>
 // Add services to the container.
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -43,6 +45,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseStaticFiles("/wwwroot");
 
 app.UseHttpsRedirection();
 
