@@ -4,6 +4,7 @@ namespace Dashboard.BLL.Services.AccountService
 {
     public interface IAccountService
     {
-        Task<ServiceResponse<string>> SignUpAsync(SignUpVM model);
+        Task<ServiceResponse> SignUpAsync(SignUpVM model);
+        Task<ServiceResponse> SignInAsync(SignInVM model);
     }
 }

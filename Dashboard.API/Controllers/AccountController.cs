@@ -7,7 +7,7 @@ namespace Dashboard.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         private readonly IAccountService _accountService;
 
@@ -39,6 +39,22 @@ namespace Dashboard.API.Controllers
             {
                 return BadRequest(validateResult.Errors);
             }
+        }
+
+        [HttpPost("SignIn")]
+        public async Task<IActionResult> SignInAsync(SignInVM model)
+        {
+            var validator = new SignInValidator();
+            var validationResult = await validator.ValidateAsync(model);
+
+            if(!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
+            var response = await _accountService.SignInAsync(model);
+
+            return await GetResultAsync(response);
         }
 
         [HttpGet("EmailConfirmation")]
