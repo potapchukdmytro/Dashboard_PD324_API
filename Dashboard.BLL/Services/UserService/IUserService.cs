@@ -1,5 +1,4 @@
-﻿using Dashboard.DAL.Models.Identity;
-using Dashboard.DAL.ViewModels;
+﻿using Dashboard.DAL.ViewModels;
 
 namespace Dashboard.BLL.Services.UserService
 {
@@ -7,5 +6,8 @@ namespace Dashboard.BLL.Services.UserService
     {
         Task<ServiceResponse> GetAllUsersAsync();
         Task<ServiceResponse> UpdateAsync(UserVM model);
+        Task<ServiceResponse> CreateAsync(CreateUserVM model);
+        Task<ServiceResponse> DeleteAsync(string id);
+        Task<ServiceResponse> GetByIdAsync(string id);
     }
 }

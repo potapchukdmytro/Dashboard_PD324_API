@@ -1,11 +1,8 @@
 ﻿using Dashboard.BLL.Services.EmailService;
 using Dashboard.DAL;
-using Dashboard.DAL.Models.Identity;
 using Dashboard.DAL.Repositories.UserRepository;
 using Dashboard.DAL.ViewModels;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,40 +13,20 @@ namespace Dashboard.BLL.Services.AccountService
 {
     public class AccountService : IAccountService
     {
-        private readonly UserManager<User> _userManager;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
-        private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IUserRepository _userRepository;
 
-        public AccountService(UserManager<User> userManager, IEmailService emailService, IConfiguration configuration, IWebHostEnvironment webHostEnvironment, IUserRepository userRepository)
+        public AccountService(IEmailService emailService, IConfiguration configuration, IUserRepository userRepository)
         {
-            _userManager = userManager;
             _emailService = emailService;
             _configuration = configuration;
-            _webHostEnvironment = webHostEnvironment;
             _userRepository = userRepository;
-        }
-
-        private async Task SendConfirmitaionEmailMessageAsync(User user)
-        {
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var bytes = Encoding.UTF8.GetBytes(token);
-            var validateToken = WebEncoders.Base64UrlEncode(bytes);
-
-            string? host = _configuration["Host:Address"];
-            string confirmUrl = $"{host}Account/EmailConfirmation?u={user.Id}&t={validateToken}";
-            string htmlPath = Path.Combine(_webHostEnvironment.WebRootPath, "templates", "confirmemail.html");
-            string html = File.ReadAllText(htmlPath);
-            html = html.Replace("confirmUrl", confirmUrl);
-
-            string emailBody = html;
-            await _emailService.SendEmailAsync(user.Email, "Підтвердження", emailBody);
         }
 
         public async Task<ServiceResponse> SignUpAsync(SignUpVM model)
         {
-            if(await _userRepository.CheckEmailAsync(model.Email))
+            if (await _userRepository.CheckEmailAsync(model.Email))
             {
                 return ServiceResponse.GetBadRequestResponse(message: "Помилка реєстрації", errors: $"Пошта {model.Email} вже використовується");
             }
@@ -59,28 +36,18 @@ namespace Dashboard.BLL.Services.AccountService
                 return ServiceResponse.GetBadRequestResponse(message: "Помилка реєстрації", errors: $"Ім'я користувача {model.UserName} вже використовується");
             }
 
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                Email = model.Email,
-                NormalizedEmail = model.Email.ToUpper(),
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                UserName = model.UserName,
-                NormalizedUserName = model.UserName.ToUpper()
-            };
+            var user = await _userRepository.SignUpAsync(model);
 
-            var createResult = await _userManager.CreateAsync(user, model.Password);
-
-            if (!createResult.Succeeded)
+            if (user == null)
             {
-                var errors = createResult.Errors.Select(e => e.Description);
-                return ServiceResponse.GetBadRequestResponse(message: "Помилка реєстрації", errors: errors.ToArray());
+                return ServiceResponse.GetBadRequestResponse(message: "Помилка реєстрації", errors: "Не вдалося зареєструвати користувача");
             }
 
-            await SendConfirmitaionEmailMessageAsync(user);
+            var token = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
+            await _emailService.SendConfirmitaionEmailMessageAsync(user, token);
 
-            await _userManager.AddToRoleAsync(user, Settings.UserRole);
+            await _userRepository.AddToRoleAsync(user.Id.ToString(), Settings.UserRole);
+
             return ServiceResponse.GetOkResponse("Успішна реєстрація", "token");
         }
 
@@ -95,9 +62,9 @@ namespace Dashboard.BLL.Services.AccountService
                     return ServiceResponse.GetBadRequestResponse(message: "Не успішний вхід", errors: "Пошта або пароль вказані невірно");
                 }
 
-                var user = await _userManager.FindByEmailAsync(model.Email);
+                var user = await _userRepository.GetUserByEmailAsync(model.Email);
 
-                var passwordResult = await _userManager.CheckPasswordAsync(user, model.Password);
+                var passwordResult = await _userRepository.CheckPasswordAsync(user, model.Password);
 
                 if (!passwordResult)
                 {

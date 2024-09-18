@@ -1,16 +1,39 @@
-﻿using MailKit.Net.Smtp;
+﻿using Dashboard.DAL.Models.Identity;
+using Dashboard.DAL.ViewModels;
+using MailKit.Net.Smtp;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
+using System.Text;
 
 namespace Dashboard.BLL.Services.EmailService
 {
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public EmailService(IConfiguration configuration)
+        public EmailService(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
         {
             _configuration = configuration;
+            _webHostEnvironment = webHostEnvironment;
+        }
+
+        public async Task SendConfirmitaionEmailMessageAsync(UserVM model, string token)
+        {
+            var bytes = Encoding.UTF8.GetBytes(token);
+            var validateToken = WebEncoders.Base64UrlEncode(bytes);
+
+            string? host = _configuration["Host:Address"];
+            string confirmUrl = $"{host}Account/EmailConfirmation?u={model.Id}&t={validateToken}";
+            string htmlPath = Path.Combine(_webHostEnvironment.WebRootPath, "templates", "confirmemail.html");
+            string html = File.ReadAllText(htmlPath);
+            html = html.Replace("confirmUrl", confirmUrl);
+
+            string emailBody = html;
+            await SendEmailAsync(model.Email, "Підтвердження", emailBody);
         }
 
         public async Task SendEmailAsync(string emailTo, string subject, string body)

@@ -1,7 +1,10 @@
-﻿namespace Dashboard.BLL.Services.EmailService
+﻿using Dashboard.DAL.ViewModels;
+
+namespace Dashboard.BLL.Services.EmailService
 {
     public interface IEmailService
     {
-        public Task SendEmailAsync(string emailTo, string subject, string body);
+        Task SendEmailAsync(string emailTo, string subject, string body);
+        Task SendConfirmitaionEmailMessageAsync(UserVM model, string token);
     }
 }
