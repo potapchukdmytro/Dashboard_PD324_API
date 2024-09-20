@@ -1,4 +1,5 @@
-﻿using Dashboard.DAL.ViewModels;
+﻿using Dashboard.DAL.Models.Identity;
+using Dashboard.DAL.ViewModels;
 using Microsoft.AspNetCore.Identity;
 
 namespace Dashboard.DAL.Repositories.UserRepository
@@ -7,16 +8,16 @@ namespace Dashboard.DAL.Repositories.UserRepository
     {
         Task<bool> CheckEmailAsync(string email);
         Task<bool> CheckUserNameAsync(string userName);
-        Task<bool> CheckPasswordAsync(UserVM model, string password);
-        Task<UserVM?> GetUserByEmailAsync(string email);
-        Task<UserVM?> GetUserByNameAsync(string userName);
-        Task<UserVM?> GetUserByIdAsync(string id);
-        Task<UserVM?> SignUpAsync(SignUpVM model);
+        Task<bool> CheckPasswordAsync(User model, string password);
+        Task<User?> GetUserByEmailAsync(string email);
+        Task<User?> GetUserByNameAsync(string userName);
+        Task<User?> GetUserByIdAsync(string id);
+        Task<User?> SignUpAsync(User model, string password);
         Task<IdentityResult> AddToRoleAsync(string id, string role);
-        Task<string?> GenerateEmailConfirmationTokenAsync(UserVM model);
-        Task<IdentityResult> CreateAsync(CreateUserVM model);
-        Task<IdentityResult> UpdateAsync(UserVM model);
-        Task<IdentityResult> DeleteAsync(UserVM model);
-        Task<List<UserVM>> GetAllAsync();
+        Task<string?> GenerateEmailConfirmationTokenAsync(User model);
+        Task<IdentityResult> CreateAsync(User model, string password, string role);
+        Task<IdentityResult> UpdateAsync(User model);
+        Task<IdentityResult> DeleteAsync(User model);
+        Task<List<User>> GetAllAsync();
     }
 }

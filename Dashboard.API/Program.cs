@@ -1,5 +1,6 @@
 using Dashboard.BLL.Services.AccountService;
 using Dashboard.BLL.Services.EmailService;
+using Dashboard.BLL.Services.ImageService;
 using Dashboard.BLL.Services.UserService;
 using Dashboard.DAL;
 using Dashboard.DAL.Initializer;
@@ -56,11 +57,16 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IImageService, ImageService>();
 
 // Add repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddControllers();
+
+// Add automapper
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

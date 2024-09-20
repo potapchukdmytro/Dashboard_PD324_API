@@ -1,30 +1,28 @@
-﻿using Dashboard.BLL.Services.UserService;
+﻿using Dashboard.BLL.Services.ImageService;
+using Dashboard.BLL.Services.UserService;
 using Dashboard.BLL.Validators;
 using Dashboard.DAL.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using MimeKit.Encodings;
-using System.Buffers.Text;
-using System.Text;
 
 namespace Dashboard.API.Controllers
 {
-
     [ApiController]
     [Route("[controller]")]
     public class UserController : BaseController
     {
         private readonly IUserService _userService;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IImageService _imageService;
 
-        public UserController(IUserService userService, IWebHostEnvironment webHostEnvironment)
+        public UserController(IUserService userService, IWebHostEnvironment webHostEnvironment, IImageService imageService)
         {
             _userService = userService;
             _webHostEnvironment = webHostEnvironment;
+            _imageService = imageService;
         }
 
-        //[HttpPost("imageTest")]
-        //public async Task<IActionResult> ImageTest([FromBody] string base64)
+        //[HttpPost("SaveImageBase64")]
+        //public async Task<IActionResult> SaveImageBase64([FromBody] string base64)
         //{
         //    var splitBase64 = base64.Split(",");
         //    var base64Valid = splitBase64[1];
@@ -38,6 +36,19 @@ namespace Dashboard.API.Controllers
 
         //    return Ok();
         //}
+
+        [HttpPost("ImageFromUser")]
+        public async Task<IActionResult> AddImageFromUserAsync([FromForm]UserImageVM model) 
+        {
+            if(model.Image == null)
+            {
+                return BadRequest("Зображення не знайдено");
+            }
+
+            var response = await _imageService.SaveImageAsync(model);
+
+            return await GetResultAsync(response);
+        }
 
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAllAsync()

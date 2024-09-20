@@ -1,29 +1,33 @@
-﻿using Dashboard.DAL.Models.Identity;
+﻿using AutoMapper;
+using Dashboard.DAL.Models.Identity;
 using Dashboard.DAL.Repositories.UserRepository;
 using Dashboard.DAL.ViewModels;
-using Microsoft.AspNetCore.Identity;
 
 namespace Dashboard.BLL.Services.UserService
 {
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, IMapper mapper)
         {
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         public async Task<ServiceResponse> CreateAsync(CreateUserVM model)
         {
             var emailCheckResult = await _userRepository.CheckEmailAsync(model.Email);
 
-            if(emailCheckResult)
+            if (emailCheckResult)
             {
                 return ServiceResponse.GetBadRequestResponse(message: "Не вдалося створити користувача", errors: $"Користувач з поштою {model.Email} вже існує");
             }
 
-            var result = await _userRepository.CreateAsync(model);
+            var newUser = _mapper.Map<User>(model);
+
+            var result = await _userRepository.CreateAsync(newUser, model.Password, model.Role);
 
             if (result.Succeeded)
             {
@@ -44,7 +48,7 @@ namespace Dashboard.BLL.Services.UserService
 
             var result = await _userRepository.DeleteAsync(user);
 
-            if(!result.Succeeded)
+            if (!result.Succeeded)
             {
                 return ServiceResponse.GetBadRequestResponse(message: "Не вдалося видалити користувача", errors: result.Errors.Select(e => e.Description).ToArray());
             }
@@ -57,7 +61,9 @@ namespace Dashboard.BLL.Services.UserService
             try
             {
                 var users = await _userRepository.GetAllAsync();
-                return ServiceResponse.GetOkResponse("Список користувачів", users);
+                var models = _mapper.Map<List<UserVM>>(users);
+
+                return ServiceResponse.GetOkResponse("Список користувачів", models);
             }
             catch (Exception ex)
             {
@@ -67,14 +73,23 @@ namespace Dashboard.BLL.Services.UserService
 
         public async Task<ServiceResponse> GetByIdAsync(string id)
         {
-            var user = await _userRepository.GetUserByIdAsync(id);
-
-            if (user == null)
+            try
             {
-                return ServiceResponse.GetBadRequestResponse(message: "Не вдалося отримати користвача", errors: $"Користувача {id} не знайдено");
-            }
+                var user = await _userRepository.GetUserByIdAsync(id);
 
-            return ServiceResponse.GetOkResponse(message: "Користувача отримано", payload: user);
+                if (user == null)
+                {
+                    return ServiceResponse.GetBadRequestResponse(message: "Не вдалося отримати користвача", errors: $"Користувача {id} не знайдено");
+                }
+
+                var model = _mapper.Map<UserVM>(user);
+
+                return ServiceResponse.GetOkResponse(message: "Користувача отримано", payload: model);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResponse.GetInternalServerErrorResponse($"Помилка під час отримання користувача з id {id}", ex.Message);
+            }
         }
 
         public async Task<ServiceResponse> UpdateAsync(UserVM model)

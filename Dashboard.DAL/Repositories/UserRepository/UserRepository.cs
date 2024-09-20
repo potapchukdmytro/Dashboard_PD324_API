@@ -1,8 +1,6 @@
 ﻿using Dashboard.DAL.Models.Identity;
-using Dashboard.DAL.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
 
 namespace Dashboard.DAL.Repositories.UserRepository
 {
@@ -32,16 +30,14 @@ namespace Dashboard.DAL.Repositories.UserRepository
             return await _userManager.FindByEmailAsync(email) != null;
         }
 
-        public async Task<bool> CheckPasswordAsync(UserVM model, string password)
+        public async Task<bool> CheckPasswordAsync(User model, string password)
         {
-            var user = await _userManager.FindByIdAsync(model.Id.ToString());
-
-            if(user == null)
+            if (model == null)
             {
                 return false;
             }
 
-            return await _userManager.CheckPasswordAsync(user, password);
+            return await _userManager.CheckPasswordAsync(model, password);
         }
 
         public async Task<bool> CheckUserNameAsync(string userName)
@@ -49,182 +45,85 @@ namespace Dashboard.DAL.Repositories.UserRepository
             return await _userManager.FindByNameAsync(userName) != null;
         }
 
-        public async Task<IdentityResult> CreateAsync(CreateUserVM model)
+        public async Task<IdentityResult> CreateAsync(User model, string password, string role)
         {
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                UserName = model.UserName,
-                Email = model.Email,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                PhoneNumber = model.PhoneNumber,
-                EmailConfirmed = model.EmailConfirmed,
-                PhoneNumberConfirmed = model.PhoneNumberConfirmed
-            };
+            var createResult = await _userManager.CreateAsync(model, password);
 
-            var createResult = await _userManager.CreateAsync(user, model.Password);
-
-            if(!createResult.Succeeded)
+            if(createResult.Succeeded)
             {
-                return createResult;
+                return await _userManager.AddToRoleAsync(model, role);
             }
 
-            return await _userManager.AddToRoleAsync(user, model.Role);
+            return createResult;
         }
 
-        public async Task<IdentityResult> DeleteAsync(UserVM model)
+        public async Task<IdentityResult> DeleteAsync(User model)
         {
-            var user = await _userManager.FindByIdAsync(model.Id.ToString());
-
-            if(user == null)
-            {
-                return IdentityResult.Failed(new IdentityError { Description = $"User {model.Id} not found" });
-            }
-
-            return await _userManager.DeleteAsync(user);
-        }
-
-        public async Task<string?> GenerateEmailConfirmationTokenAsync(UserVM model)
-        {
-            var user = await _userManager.FindByIdAsync(model.Id.ToString());
-
-            if (user == null)
+            if (model == null)
             {
                 return null;
             }
 
-            return await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            return await _userManager.DeleteAsync(model);
         }
 
-        public async Task<List<UserVM>> GetAllAsync()
+        public async Task<string?> GenerateEmailConfirmationTokenAsync(User model)
+        {
+            if (model == null)
+            {
+                return null;
+            }
+
+            return await _userManager.GenerateEmailConfirmationTokenAsync(model);
+        }
+
+        public async Task<List<User>> GetAllAsync()
         {
             var users = _userManager.Users
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role);
 
-            var models = users.Select(u => new UserVM
-            {
-                Id = u.Id,
-                Email = u.Email,
-                UserName = u.UserName,
-                LastName = u.LastName,
-                FirstName = u.FirstName
-
-            });
-
-            return await models.ToListAsync();
+            return await users.ToListAsync();
         }
 
-        public async Task<UserVM?> GetUserByEmailAsync(string email)
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
-
-            if (user == null)
-            {
-                return null;
-            }
-
-            var model = new UserVM
-            {
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Id = user.Id,
-                UserName = user.UserName
-            };
-
-            return model;
-
+            return user;
         }
 
-        public async Task<UserVM?> GetUserByIdAsync(string id)
+        public async Task<User?> GetUserByIdAsync(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
-
-            if (user == null)
-            {
-                return null;
-            }
-
-            var model = new UserVM
-            {
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Id = user.Id,
-                UserName = user.UserName
-            };
-
-            return model;
+            return user;
         }
 
-        public async Task<UserVM?> GetUserByNameAsync(string userName)
+        public async Task<User?> GetUserByNameAsync(string userName)
         {
             var user = await _userManager.FindByNameAsync(userName);
+            return user;
+        }
 
-            if (user == null)
+        public async Task<User?> SignUpAsync(User model, string password)
+        {
+            var result = await _userManager.CreateAsync(model, password);
+
+            if (!result.Succeeded)
             {
                 return null;
             }
-
-            var model = new UserVM
-            {
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Id = user.Id,
-                UserName = user.UserName
-            };
 
             return model;
         }
 
-        public async Task<UserVM?> SignUpAsync(SignUpVM model)
+        public async Task<IdentityResult> UpdateAsync(User model)
         {
-            var user = new User
+            if (model == null)
             {
-                Id = Guid.NewGuid(),
-                Email = model.Email,
-                NormalizedEmail = model.Email.ToUpper(),
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                UserName = model.UserName,
-                NormalizedUserName = model.UserName.ToUpper()
-            };
-
-            var result = await _userManager.CreateAsync(user, model.Password);
-
-            if(!result.Succeeded)
-            {
-                return null;
+                return IdentityResult.Failed(new IdentityError { Description = "Користувача не знайдено" });
             }
 
-            return new UserVM
-            {
-                Id = user.Id,
-                Email = user.Email,
-                UserName = user.UserName,
-                FirstName = user.FirstName,
-                LastName = user.LastName
-            };
-        }
-
-        public async Task<IdentityResult> UpdateAsync(UserVM model)
-        {
-            var user = await _userManager.FindByIdAsync(model.Id.ToString());
-
-            if (user == null)
-            {
-                return IdentityResult.Failed(new IdentityError { Description = $"User {model.Id} not found" });
-            }
-
-            user.Email = model.Email;
-            user.FirstName = model.FirstName;
-            user.LastName = model.LastName;
-            user.UserName = model.UserName;
-
-            return await _userManager.UpdateAsync(user);
+            return await _userManager.UpdateAsync(model);
         }
     }
 }

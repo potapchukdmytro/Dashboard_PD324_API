@@ -1,8 +1,9 @@
-﻿using Dashboard.BLL.Services.EmailService;
+﻿using AutoMapper;
+using Dashboard.BLL.Services.EmailService;
 using Dashboard.DAL;
+using Dashboard.DAL.Models.Identity;
 using Dashboard.DAL.Repositories.UserRepository;
 using Dashboard.DAL.ViewModels;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,12 +17,14 @@ namespace Dashboard.BLL.Services.AccountService
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
 
-        public AccountService(IEmailService emailService, IConfiguration configuration, IUserRepository userRepository)
+        public AccountService(IEmailService emailService, IConfiguration configuration, IUserRepository userRepository, IMapper mapper)
         {
             _emailService = emailService;
             _configuration = configuration;
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         public async Task<ServiceResponse> SignUpAsync(SignUpVM model)
@@ -36,7 +39,11 @@ namespace Dashboard.BLL.Services.AccountService
                 return ServiceResponse.GetBadRequestResponse(message: "Помилка реєстрації", errors: $"Ім'я користувача {model.UserName} вже використовується");
             }
 
-            var user = await _userRepository.SignUpAsync(model);
+            var newUser = _mapper.Map<User>(model);
+
+            var user = await _userRepository.SignUpAsync(newUser, model.Password);
+
+            var userVM = _mapper.Map<UserVM>(user);
 
             if (user == null)
             {
@@ -44,7 +51,7 @@ namespace Dashboard.BLL.Services.AccountService
             }
 
             var token = await _userRepository.GenerateEmailConfirmationTokenAsync(user);
-            await _emailService.SendConfirmitaionEmailMessageAsync(user, token);
+            await _emailService.SendConfirmitaionEmailMessageAsync(userVM, token);
 
             await _userRepository.AddToRoleAsync(user.Id.ToString(), Settings.UserRole);
 
