@@ -13,7 +13,8 @@ namespace Dashboard.BLL.MappingProfiles
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()));
 
             // User -> UserVM
-            CreateMap<User, UserVM>();
+            CreateMap<User, UserVM>()
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.UserRoles.First().Role.Name));
 
             // CreateUserVM -> User
             CreateMap<CreateUserVM, User>()

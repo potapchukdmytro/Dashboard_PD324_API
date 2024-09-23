@@ -1,6 +1,7 @@
 ﻿using Dashboard.DAL;
 using Dashboard.DAL.ViewModels;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace Dashboard.BLL.Services.ImageService
 {
@@ -13,14 +14,14 @@ namespace Dashboard.BLL.Services.ImageService
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<ServiceResponse> SaveImageAsync(UserImageVM model)
+        public async Task<ServiceResponse> SaveImageAsync(IFormFile image)
         {
-            if(model.Image == null)
+            if(image == null)
             {
                 return ServiceResponse.GetBadRequestResponse(message: "Не вдалося зберегти зображення", errors: "Не знайдено файл");
             }
 
-            var types = model.Image.ContentType.Split('/');
+            var types = image.ContentType.Split('/');
 
             if(types.Length != 2 || types[0] != "image")
             {
@@ -34,7 +35,7 @@ namespace Dashboard.BLL.Services.ImageService
 
             using (var stream = new FileStream(imagePath, FileMode.Create))
             {
-                using(var imageStream = model.Image.OpenReadStream())
+                using(var imageStream = image.OpenReadStream())
                 {
                     await imageStream.CopyToAsync(stream);
                 }

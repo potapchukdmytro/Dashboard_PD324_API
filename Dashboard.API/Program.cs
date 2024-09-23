@@ -1,10 +1,13 @@
+using Dashboard.BLL.Middlewares;
 using Dashboard.BLL.Services.AccountService;
 using Dashboard.BLL.Services.EmailService;
 using Dashboard.BLL.Services.ImageService;
+using Dashboard.BLL.Services.RoleService;
 using Dashboard.BLL.Services.UserService;
 using Dashboard.DAL;
 using Dashboard.DAL.Initializer;
 using Dashboard.DAL.Models.Identity;
+using Dashboard.DAL.Repositories.RoleRepository;
 using Dashboard.DAL.Repositories.UserRepository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -19,6 +22,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     //options.UseNpgsql("name=PostgreSql");
     options.UseSqlServer("name=MsSql");
+});
+
+// Add CORS
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("http://10.10.35.100:3000",
+                                              "http://localhost:3000");
+                      });
 });
 
 // Add identity
@@ -58,9 +74,11 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 
 // Add repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 builder.Services.AddControllers();
 
@@ -80,12 +98,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<MiddlewareExceptionHandling>();
+
 app.UseStaticFiles("/wwwroot");
 
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseCors(MyAllowSpecificOrigins);
 
 app.MapControllers();
 

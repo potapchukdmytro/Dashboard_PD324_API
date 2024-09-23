@@ -1,5 +1,4 @@
 ﻿using Dashboard.DAL.Models.Identity;
-using Dashboard.DAL.ViewModels;
 using Microsoft.AspNetCore.Identity;
 
 namespace Dashboard.DAL.Repositories.UserRepository

@@ -1,9 +1,10 @@
 ﻿using Dashboard.DAL.ViewModels;
+using Microsoft.AspNetCore.Http;
 
 namespace Dashboard.BLL.Services.ImageService
 {
     public interface IImageService
     {
-        Task<ServiceResponse> SaveImageAsync(UserImageVM model);
+        Task<ServiceResponse> SaveImageAsync(IFormFile image);
     }
 }

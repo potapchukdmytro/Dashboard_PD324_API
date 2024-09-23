@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Dashboard.BLL.Services.ImageService;
 using Dashboard.DAL.Models.Identity;
 using Dashboard.DAL.Repositories.UserRepository;
 using Dashboard.DAL.ViewModels;
@@ -9,11 +10,40 @@ namespace Dashboard.BLL.Services.UserService
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly IImageService _imageService;
 
-        public UserService(IUserRepository userRepository, IMapper mapper)
+        public UserService(IUserRepository userRepository, IMapper mapper, IImageService imageService)
         {
             _userRepository = userRepository;
             _mapper = mapper;
+            _imageService = imageService;
+        }
+
+        public async Task<ServiceResponse> AddImageFromUserAsync(UserImageVM model)
+        {
+            var user = await _userRepository.GetUserByIdAsync(model.UserId);
+
+            if (user == null)
+            {
+                return ServiceResponse.GetBadRequestResponse($"Користувача з id {model.UserId} не знайдено");
+            }
+
+            var response = await _imageService.SaveImageAsync(model.Image);
+
+            if(!response.Success)
+            {
+                return ServiceResponse.GetBadRequestResponse("Не вдалося зберегти зображення");
+            }
+
+            user.Image = response.Payload.ToString();
+            var result = await _userRepository.UpdateAsync(user);
+
+            if(!response.Success)
+            {
+                return ServiceResponse.GetInternalServerErrorResponse(result.Errors.First().Description);
+            }
+
+            return ServiceResponse.GetOkResponse("Зображення успішно додано");
         }
 
         public async Task<ServiceResponse> CreateAsync(CreateUserVM model)
@@ -58,88 +88,95 @@ namespace Dashboard.BLL.Services.UserService
 
         public async Task<ServiceResponse> GetAllUsersAsync()
         {
-            try
-            {
-                var users = await _userRepository.GetAllAsync();
-                var models = _mapper.Map<List<UserVM>>(users);
+            var users = await _userRepository.GetAllAsync();
+            var models = _mapper.Map<List<UserVM>>(users);
 
-                return ServiceResponse.GetOkResponse("Список користувачів", models);
-            }
-            catch (Exception ex)
+            return ServiceResponse.GetOkResponse("Список користувачів", models);
+        }
+
+        public async Task<ServiceResponse> GetByEmailAsync(string email)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(email);
+
+            if (user == null)
             {
-                return ServiceResponse.GetInternalServerErrorResponse(message: "Помилка під час отримання користувачів", errors: ex.Message);
+                return ServiceResponse.GetBadRequestResponse(message: "Не вдалося отримати користвача", errors: $"Користувача {email} не знайдено");
             }
+
+            var model = _mapper.Map<UserVM>(user);
+
+            return ServiceResponse.GetOkResponse(message: "Користувача отримано", payload: model);
         }
 
         public async Task<ServiceResponse> GetByIdAsync(string id)
         {
-            try
+            var user = await _userRepository.GetUserByIdAsync(id);
+
+            if (user == null)
             {
-                var user = await _userRepository.GetUserByIdAsync(id);
-
-                if (user == null)
-                {
-                    return ServiceResponse.GetBadRequestResponse(message: "Не вдалося отримати користвача", errors: $"Користувача {id} не знайдено");
-                }
-
-                var model = _mapper.Map<UserVM>(user);
-
-                return ServiceResponse.GetOkResponse(message: "Користувача отримано", payload: model);
+                return ServiceResponse.GetBadRequestResponse(message: "Не вдалося отримати користвача", errors: $"Користувача {id} не знайдено");
             }
-            catch (Exception ex)
+
+            var model = _mapper.Map<UserVM>(user);
+
+            return ServiceResponse.GetOkResponse(message: "Користувача отримано", payload: model);
+        }
+
+        public async Task<ServiceResponse> GetByUserNameAsync(string userName)
+        {
+            var user = await _userRepository.GetUserByNameAsync(userName);
+
+            if (user == null)
             {
-                return ServiceResponse.GetInternalServerErrorResponse($"Помилка під час отримання користувача з id {id}", ex.Message);
+                return ServiceResponse.GetBadRequestResponse(message: "Не вдалося отримати користвача", errors: $"Користувача {userName} не знайдено");
             }
+
+            var model = _mapper.Map<UserVM>(user);
+
+            return ServiceResponse.GetOkResponse(message: "Користувача отримано", payload: model);
         }
 
         public async Task<ServiceResponse> UpdateAsync(UserVM model)
         {
-            try
+            var user = await _userRepository.GetUserByIdAsync(model.Id.ToString());
+
+            if (user == null)
             {
-                var user = await _userRepository.GetUserByIdAsync(model.Id.ToString());
-
-                if (user == null)
-                {
-                    return ServiceResponse.GetBadRequestResponse(message: "Помилка оновлення", errors: $"Користувача з id {model.Id} не знайдено");
-                }
-
-                if (user.Email != model.Email)
-                {
-                    if (await _userRepository.CheckEmailAsync(model.Email))
-                    {
-                        return ServiceResponse.GetBadRequestResponse(message: "Помилка оновлення", errors: $"Пошта {model.Email} вже використовується");
-                    }
-
-                    user.Email = model.Email;
-                }
-
-                if (user.UserName != model.UserName)
-                {
-                    if (await _userRepository.CheckUserNameAsync(model.UserName))
-                    {
-                        return ServiceResponse.GetBadRequestResponse(message: "Помилка оновлення", errors: $"Ім'я користувача {model.UserName} вже використовується");
-                    }
-
-                    user.UserName = model.UserName;
-                }
-
-                user.FirstName = model.FirstName;
-                user.LastName = model.LastName;
-
-                var updateResult = await _userRepository.UpdateAsync(user);
-
-                if (updateResult.Succeeded)
-                {
-                    return ServiceResponse.GetOkResponse("Користувача успішно оновлено");
-                }
-                else
-                {
-                    return ServiceResponse.GetBadRequestResponse(message: "Помилка оновлення", errors: updateResult.Errors.Select(e => e.Description).ToArray());
-                }
+                return ServiceResponse.GetBadRequestResponse(message: "Помилка оновлення", errors: $"Користувача з id {model.Id} не знайдено");
             }
-            catch (Exception ex)
+
+            if (user.Email != model.Email)
             {
-                return ServiceResponse.GetInternalServerErrorResponse(message: ex.Message, errors: ex.Message);
+                if (await _userRepository.CheckEmailAsync(model.Email))
+                {
+                    return ServiceResponse.GetBadRequestResponse(message: "Помилка оновлення", errors: $"Пошта {model.Email} вже використовується");
+                }
+
+                user.Email = model.Email;
+            }
+
+            if (user.UserName != model.UserName)
+            {
+                if (await _userRepository.CheckUserNameAsync(model.UserName))
+                {
+                    return ServiceResponse.GetBadRequestResponse(message: "Помилка оновлення", errors: $"Ім'я користувача {model.UserName} вже використовується");
+                }
+
+                user.UserName = model.UserName;
+            }
+
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+
+            var updateResult = await _userRepository.UpdateAsync(user);
+
+            if (updateResult.Succeeded)
+            {
+                return ServiceResponse.GetOkResponse("Користувача успішно оновлено");
+            }
+            else
+            {
+                return ServiceResponse.GetBadRequestResponse(message: "Помилка оновлення", errors: updateResult.Errors.Select(e => e.Description).ToArray());
             }
         }
     }

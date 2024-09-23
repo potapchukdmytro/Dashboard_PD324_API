@@ -12,13 +12,11 @@ namespace Dashboard.API.Controllers
     {
         private readonly IUserService _userService;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly IImageService _imageService;
 
-        public UserController(IUserService userService, IWebHostEnvironment webHostEnvironment, IImageService imageService)
+        public UserController(IUserService userService, IWebHostEnvironment webHostEnvironment)
         {
             _userService = userService;
             _webHostEnvironment = webHostEnvironment;
-            _imageService = imageService;
         }
 
         //[HttpPost("SaveImageBase64")]
@@ -45,7 +43,12 @@ namespace Dashboard.API.Controllers
                 return BadRequest("Зображення не знайдено");
             }
 
-            var response = await _imageService.SaveImageAsync(model);
+            if(string.IsNullOrEmpty(model.UserId))
+            {
+                return BadRequest("Невірно вказано id користувача");
+            }
+
+            var response = await _userService.AddImageFromUserAsync(model);
 
             return await GetResultAsync(response);
         }
@@ -99,10 +102,38 @@ namespace Dashboard.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetByIdAsync(string id)
+        public async Task<IActionResult> GetByIdAsync(string? id, string? userName, string? email)
         {
-            var response = await _userService.GetByIdAsync(id);
-            return await GetResultAsync(response);
+            if(!string.IsNullOrEmpty(id))
+            {
+                var response = await _userService.GetByIdAsync(id);
+
+                if(response.Success)
+                {
+                    return await GetResultAsync(response);
+                }
+            }
+            if (!string.IsNullOrEmpty(userName))
+            {
+                var response = await _userService.GetByUserNameAsync(userName);
+
+                if (response.Success)
+                {
+                    return await GetResultAsync(response);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(email))
+            {
+                var response = await _userService.GetByEmailAsync(email);
+
+                if (response.Success)
+                {
+                    return await GetResultAsync(response);
+                }
+            }
+
+            return NotFound();
         }
     }
 }
