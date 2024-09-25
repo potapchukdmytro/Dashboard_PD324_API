@@ -11,6 +11,8 @@ namespace Dashboard.BLL.MappingProfiles
             // Role -> RoleVM
             CreateMap<Role, RoleVM>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id.ToString()));
+
+            CreateMap<RoleVM, Role>();
         }
     }
 }

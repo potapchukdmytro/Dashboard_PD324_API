@@ -4,6 +4,10 @@ namespace Dashboard.BLL.Services.RoleService
 {
     public interface IRoleService
     {
+        Task<ServiceResponse> CreateAsync(RoleVM model);
         Task<ServiceResponse> GetAllAsync();
+        Task<ServiceResponse> GetByNameAsync(string name);
+        Task<ServiceResponse> DeleteAsync(string id);
+        Task<ServiceResponse> UpdateAsync(RoleVM model);
     }
 }
