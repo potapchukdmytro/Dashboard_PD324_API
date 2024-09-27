@@ -1,4 +1,5 @@
-﻿using Dashboard.DAL.Models.Identity;
+﻿using Dashboard.DAL.Models;
+using Dashboard.DAL.Models.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,9 @@ namespace Dashboard.DAL
     {
         public AppDbContext(DbContextOptions options)
             : base(options) { }
+
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Category> Categories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -52,6 +56,15 @@ namespace Dashboard.DAL
                 b.HasMany(e => e.RoleClaims)
                     .WithOne(e => e.Role)
                     .HasForeignKey(rc => rc.RoleId)
+                    .IsRequired();
+            });
+
+            // Product one to many Categories
+            builder.Entity<Product>(p =>
+            {
+                p.HasOne(e => e.Category)
+                    .WithMany(e => e.Products)
+                    .HasForeignKey(e => e.CategoryId)
                     .IsRequired();
             });
         }
