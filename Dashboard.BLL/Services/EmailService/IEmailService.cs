@@ -6,5 +6,6 @@ namespace Dashboard.BLL.Services.EmailService
     {
         Task SendEmailAsync(string emailTo, string subject, string body);
         Task SendConfirmitaionEmailMessageAsync(UserVM model, string token);
+        Task SendResetPasswordMessageAsync(UserVM model, string token);
     }
 }

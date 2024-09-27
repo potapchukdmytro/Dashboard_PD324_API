@@ -12,6 +12,5 @@ namespace Dashboard.DAL.Repositories.RoleRepository
         Task<IdentityResult> CreateAsync(Role model);
         Task<IdentityResult> UpdateAsync(Role model);
         Task<IdentityResult> DeleteAsync(Role model);
-
     }
 }

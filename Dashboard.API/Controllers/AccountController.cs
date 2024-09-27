@@ -2,6 +2,7 @@
 using Dashboard.BLL.Validators;
 using Dashboard.DAL.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.RegularExpressions;
 
 namespace Dashboard.API.Controllers
 {
@@ -65,9 +66,57 @@ namespace Dashboard.API.Controllers
                 return NotFound();
             }
 
+            var response = await _accountService.EmailConfirmationAsync(u, t);
 
+            if(response.Success)
+            {
+                return Redirect("https://mydashboard.com/signin");
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
 
-            return Ok("Пошта підтверджена");
+        [HttpGet("ForgotPassword")]
+        public async Task<IActionResult> ForgotPasswordAsync(string? email)
+        {
+            if(string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Пошта не може бути порожньою");
+            }
+
+            Regex regex = new Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$");
+            Match match = regex.Match(email);
+            if (!match.Success)
+            {
+                return NotFound("Невірний формат пошти");
+            }
+
+            var response = await _accountService.ForgotPasswordAsync(email);
+
+            return await GetResultAsync(response);
+        }
+
+        [HttpPost("resetpassword")]
+        public async Task<IActionResult> ResetPasswordAsync([FromForm] ResetPasswordVM model)
+        {
+            var validator = new ResetPasswordValidator();
+            var result = await validator.ValidateAsync(model);
+
+            if(!result.IsValid)
+            {
+                return NotFound();
+            }
+
+            var response = await _accountService.ResetPasswordAsync(model);
+
+            if(response.Success)
+            {
+                return Redirect("https://mydashboard.com/signin");
+            }
+
+            return NotFound();
         }
     }
 }

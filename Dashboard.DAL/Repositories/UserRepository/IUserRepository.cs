@@ -14,9 +14,12 @@ namespace Dashboard.DAL.Repositories.UserRepository
         Task<User?> SignUpAsync(User model, string password);
         Task<IdentityResult> AddToRoleAsync(string id, string role);
         Task<string?> GenerateEmailConfirmationTokenAsync(User model);
+        Task<string> GenerateResetPasswordTokenAsync(User model);
         Task<IdentityResult> CreateAsync(User model, string password, string role);
         Task<IdentityResult> UpdateAsync(User model);
         Task<IdentityResult> DeleteAsync(User model);
         Task<List<User>> GetAllAsync();
+        Task<IdentityResult> EmailConfirmationAsync(User user, string token);
+        Task<IdentityResult> ResetPasswordAsync(User user, string token, string newPassword);
     }
 }

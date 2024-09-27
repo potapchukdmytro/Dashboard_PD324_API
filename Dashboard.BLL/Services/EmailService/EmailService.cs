@@ -67,5 +67,20 @@ namespace Dashboard.BLL.Services.EmailService
             {
             }
         }
+
+        public async Task SendResetPasswordMessageAsync(UserVM model, string token)
+        {
+            var bytes = Encoding.UTF8.GetBytes(token);
+            var validToken = WebEncoders.Base64UrlEncode(bytes);
+
+            string? host = _configuration["Host:Address"];
+            string htmlPath = Path.Combine(_webHostEnvironment.WebRootPath, "templates", "resetpassword.html");
+            string html = File.ReadAllText(htmlPath);
+            html = html.Replace("userId", model.Id.ToString());
+            html = html.Replace("valueToken", validToken);
+
+            string emailBody = html;
+            await SendEmailAsync(model.Email, "Скидання паролю", emailBody);
+        }
     }
 }

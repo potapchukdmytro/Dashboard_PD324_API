@@ -1,6 +1,7 @@
 ﻿using Dashboard.DAL.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Principal;
 
 namespace Dashboard.DAL.Repositories.UserRepository
 {
@@ -67,6 +68,12 @@ namespace Dashboard.DAL.Repositories.UserRepository
             return await _userManager.DeleteAsync(model);
         }
 
+        public async Task<IdentityResult> EmailConfirmationAsync(User user, string token)
+        {
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            return result;
+        }
+
         public async Task<string?> GenerateEmailConfirmationTokenAsync(User model)
         {
             if (model == null)
@@ -75,6 +82,12 @@ namespace Dashboard.DAL.Repositories.UserRepository
             }
 
             return await _userManager.GenerateEmailConfirmationTokenAsync(model);
+        }
+
+        public async Task<string> GenerateResetPasswordTokenAsync(User model)
+        {
+            string token = await _userManager.GeneratePasswordResetTokenAsync(model);
+            return token;
         }
 
         public async Task<List<User>> GetAllAsync()
@@ -102,6 +115,12 @@ namespace Dashboard.DAL.Repositories.UserRepository
         {
             var user = await _userManager.FindByNameAsync(userName);
             return user;
+        }
+
+        public async Task<IdentityResult> ResetPasswordAsync(User user, string token, string newPassword)
+        {
+            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+            return result;
         }
 
         public async Task<User?> SignUpAsync(User model, string password)

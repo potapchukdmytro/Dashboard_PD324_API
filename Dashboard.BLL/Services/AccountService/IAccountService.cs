@@ -6,5 +6,8 @@ namespace Dashboard.BLL.Services.AccountService
     {
         Task<ServiceResponse> SignUpAsync(SignUpVM model);
         Task<ServiceResponse> SignInAsync(SignInVM model);
+        Task<ServiceResponse> EmailConfirmationAsync(string userId, string token);
+        Task<ServiceResponse> ForgotPasswordAsync(string email);
+        Task<ServiceResponse> ResetPasswordAsync(ResetPasswordVM model);
     }
 }

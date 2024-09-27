@@ -4,6 +4,7 @@ using Dashboard.DAL;
 using Dashboard.DAL.Models.Identity;
 using Dashboard.DAL.Repositories.UserRepository;
 using Dashboard.DAL.ViewModels;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -105,6 +106,70 @@ namespace Dashboard.BLL.Services.AccountService
             {
                 return ServiceResponse.GetInternalServerErrorResponse(message: "Помилка авторизації", errors: ex.Message);
             }
+        }
+
+        public async Task<ServiceResponse> EmailConfirmationAsync(string userId, string token)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+
+            if (user == null)
+            {
+                return ServiceResponse.GetBadRequestResponse($"Користувача з id {userId} не знайдено", errors: $"User {user} not found");
+            }
+
+            var bytes = WebEncoders.Base64UrlDecode(token);
+            var validToken = Encoding.UTF8.GetString(bytes);
+
+            var result = await _userRepository.EmailConfirmationAsync(user, validToken);
+
+            if(result.Succeeded)
+            {
+                return ServiceResponse.GetOkResponse("Пошта успішно підтверджена");
+            }
+            else
+            {
+                return ServiceResponse.GetBadRequestResponse("Не вдалося підтвердити пошту", errors: result.Errors.Select(e => e.Description).ToArray());
+            }
+        }
+
+        public async Task<ServiceResponse> ForgotPasswordAsync(string email)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(email);
+
+            if (user == null)
+            {
+                return ServiceResponse.GetBadRequestResponse($"Користувача з поштою {email} не знайдено", errors: $"User {email} not found");
+            }
+
+            var token = await _userRepository.GenerateResetPasswordTokenAsync(user);
+
+            var model = _mapper.Map<UserVM>(user);
+
+            await _emailService.SendResetPasswordMessageAsync(model, token);
+
+            return ServiceResponse.GetOkResponse("Лист відправлено");
+        }
+
+        public async Task<ServiceResponse> ResetPasswordAsync(ResetPasswordVM model)
+        {
+            var user = await _userRepository.GetUserByIdAsync(model.Id);
+
+            if (user == null)
+            {
+                return ServiceResponse.GetBadRequestResponse($"Користувача з id {model.Id} не знайдено", errors: $"User {model.Id} not found");
+            }
+
+            var bytes = WebEncoders.Base64UrlDecode(model.Token);
+            var validToken = Encoding.UTF8.GetString(bytes);
+
+            var result = await _userRepository.ResetPasswordAsync(user, validToken, model.Password);
+
+            if(!result.Succeeded)
+            {
+                return ServiceResponse.GetBadRequestResponse("Не вдалося скинути пароль", errors: result.Errors.Select(e => e.Description).ToArray());
+            }
+
+            return ServiceResponse.GetOkResponse("Пароль скинуто");
         }
     }
 }
