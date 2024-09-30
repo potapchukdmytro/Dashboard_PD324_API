@@ -1,12 +1,16 @@
-﻿using Dashboard.BLL.Services.ImageService;
+﻿using Dashboard.BLL.Services;
 using Dashboard.BLL.Services.UserService;
 using Dashboard.BLL.Validators;
 using Dashboard.DAL.ViewModels;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Dashboard.API.Controllers
 {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(Roles = "admin")]
     [Route("[controller]")]
     public class UserController : BaseController
     {
@@ -36,14 +40,14 @@ namespace Dashboard.API.Controllers
         //}
 
         [HttpPost("ImageFromUser")]
-        public async Task<IActionResult> AddImageFromUserAsync([FromForm]UserImageVM model) 
+        public async Task<IActionResult> AddImageFromUserAsync([FromForm] UserImageVM model)
         {
-            if(model.Image == null)
+            if (model.Image == null)
             {
                 return BadRequest("Зображення не знайдено");
             }
 
-            if(string.IsNullOrEmpty(model.UserId))
+            if (string.IsNullOrEmpty(model.UserId))
             {
                 return BadRequest("Невірно вказано id користувача");
             }
@@ -53,13 +57,13 @@ namespace Dashboard.API.Controllers
             return await GetResultAsync(response);
         }
 
-        [HttpGet("GetAll")]
-        public async Task<IActionResult> GetAllAsync()
-        {
-            var response = await _userService.GetAllUsersAsync();
+        //[HttpGet("GetAll")]
+        //public async Task<IActionResult> GetAllAsync()
+        //{
+        //    var response = await _userService.GetAllUsersAsync();
 
-            return await GetResultAsync(response);
-        }
+        //    return await GetResultAsync(response);
+        //}
 
         [HttpPut]
         public async Task<IActionResult> UpdateAsync([FromBody] UserVM model)
@@ -102,13 +106,23 @@ namespace Dashboard.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetByIdAsync(string? id, string? userName, string? email)
+        public async Task<IActionResult> GetAsync([FromQuery] string? id, string? userName, string? email)
         {
-            if(!string.IsNullOrEmpty(id))
+            id = Request.Query[nameof(id)];
+            userName = Request.Query[nameof(userName)];
+            email = Request.Query[nameof(email)];
+
+            if (id == null && userName == null && email == null)
+            {
+                var response = await _userService.GetAllUsersAsync();
+                return await GetResultAsync(response);
+            }
+
+            if (!string.IsNullOrEmpty(id))
             {
                 var response = await _userService.GetByIdAsync(id);
 
-                if(response.Success)
+                if (response.Success)
                 {
                     return await GetResultAsync(response);
                 }
@@ -122,7 +136,6 @@ namespace Dashboard.API.Controllers
                     return await GetResultAsync(response);
                 }
             }
-
             if (!string.IsNullOrEmpty(email))
             {
                 var response = await _userService.GetByEmailAsync(email);
@@ -133,7 +146,7 @@ namespace Dashboard.API.Controllers
                 }
             }
 
-            return NotFound();
+            return await GetResultAsync(ServiceResponse.GetBadRequestResponse("Користувача не знайдено", errors: "Користувача не знайдено"));
         }
     }
 }

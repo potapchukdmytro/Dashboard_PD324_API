@@ -1,6 +1,7 @@
 ﻿using Dashboard.DAL.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using System.Security.Principal;
 
 namespace Dashboard.DAL.Repositories.UserRepository
@@ -99,22 +100,39 @@ namespace Dashboard.DAL.Repositories.UserRepository
             return await users.ToListAsync();
         }
 
-        public async Task<User?> GetUserByEmailAsync(string email)
+        public async Task<User?> GetUserAsync(Expression<Func<User, bool>> predicate, bool includes = false)
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            User? user = null;
+
+            if (includes)
+            {
+                user = await _userManager.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(predicate);
+            }
+            else
+            {
+                user = await _userManager.Users
+                .FirstOrDefaultAsync(predicate);
+            }
+
             return user;
         }
 
-        public async Task<User?> GetUserByIdAsync(string id)
+        public async Task<User?> GetUserByEmailAsync(string email, bool includes = false)
         {
-            var user = await _userManager.FindByIdAsync(id);
-            return user;
+            return await GetUserAsync(u => u.NormalizedEmail == email.ToUpper(), includes);
         }
 
-        public async Task<User?> GetUserByNameAsync(string userName)
+        public async Task<User?> GetUserByIdAsync(string id, bool includes = false)
         {
-            var user = await _userManager.FindByNameAsync(userName);
-            return user;
+            return await GetUserAsync(u => u.Id.ToString() == id, includes);
+        }
+
+        public async Task<User?> GetUserByNameAsync(string userName, bool includes = false)
+        {
+            return await GetUserAsync(u => u.NormalizedUserName == userName.ToUpper(), includes);
         }
 
         public async Task<IdentityResult> ResetPasswordAsync(User user, string token, string newPassword)

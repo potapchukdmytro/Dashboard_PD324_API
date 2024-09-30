@@ -70,7 +70,7 @@ namespace Dashboard.BLL.Services.AccountService
                     return ServiceResponse.GetBadRequestResponse(message: "Не успішний вхід", errors: "Пошта або пароль вказані невірно");
                 }
 
-                var user = await _userRepository.GetUserByEmailAsync(model.Email);
+                var user = await _userRepository.GetUserByEmailAsync(model.Email, true);
 
                 var passwordResult = await _userRepository.CheckPasswordAsync(user, model.Password);
 
@@ -79,11 +79,14 @@ namespace Dashboard.BLL.Services.AccountService
                     return ServiceResponse.GetBadRequestResponse(message: "Не успішний вхід", errors: "Пошта або пароль вказані невірно");
                 }
 
-                var claims = new[]
+                var claims = new List<Claim>
                 {
                     new Claim("id", user.Id.ToString()),
-                    new Claim("email", user.Email)
+                    new Claim("email", user.Email ?? "no email")
                 };
+
+                var roleClaims = user.UserRoles.Select(ur => new Claim("role", ur.Role.Name));
+                claims.AddRange(roleClaims);
 
                 var issuer = _configuration["AuthSettings:issuer"];
                 var audience = _configuration["AuthSettings:audience"];
