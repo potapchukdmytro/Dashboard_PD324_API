@@ -70,7 +70,7 @@ namespace Dashboard.API.Controllers
 
             if(response.Success)
             {
-                return Redirect("https://mydashboard.com/signin");
+                return Redirect("http://localhost:3000");
             }
             else
             {

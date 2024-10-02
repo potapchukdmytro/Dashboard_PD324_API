@@ -33,6 +33,35 @@ namespace Dashboard.DAL.Initializer
                     await roleManger.CreateAsync(userRole);
                     await roleManger.CreateAsync(adminRole);
                 }
+
+                if(!userManager.Users.Any())
+                {
+                    var admin = new User
+                    {
+                        Id = Guid.NewGuid(),
+                        Email = "admin@gmail.com",
+                        EmailConfirmed = true,
+                        FirstName = "admin",
+                        LastName = "dashboard",
+                        UserName = "admin"
+                    };
+
+                    var user = new User
+                    {
+                        Id = Guid.NewGuid(),
+                        Email = "user@gmail.com",
+                        EmailConfirmed = true,
+                        FirstName = "user",
+                        LastName = "dashboard",
+                        UserName = "user"
+                    };
+
+                    await userManager.CreateAsync(user, "qwerty");
+                    await userManager.CreateAsync(admin, "qwerty");
+
+                    await userManager.AddToRoleAsync(user, Settings.UserRole);
+                    await userManager.AddToRoleAsync(admin, Settings.AdminRole);
+                }
             }
         }
     }

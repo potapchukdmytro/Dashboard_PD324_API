@@ -79,6 +79,11 @@ namespace Dashboard.BLL.Services.AccountService
                     return ServiceResponse.GetBadRequestResponse(message: "Не успішний вхід", errors: "Пошта або пароль вказані невірно");
                 }
 
+                if(!user.EmailConfirmed)
+                {
+                    return ServiceResponse.GetBadRequestResponse(message: "Не успішний вхід", errors: "Необхідно підтвердити пошту");
+                }
+
                 var claims = new List<Claim>
                 {
                     new Claim("id", user.Id.ToString()),
@@ -86,7 +91,15 @@ namespace Dashboard.BLL.Services.AccountService
                 };
 
                 var roleClaims = user.UserRoles.Select(ur => new Claim("role", ur.Role.Name));
-                claims.AddRange(roleClaims);
+
+                if(roleClaims.Count() > 0)
+                {
+                    claims.AddRange(roleClaims);
+                }
+                else
+                {
+                    claims.Add(new Claim("role", Settings.UserRole));
+                }
 
                 var issuer = _configuration["AuthSettings:issuer"];
                 var audience = _configuration["AuthSettings:audience"];
