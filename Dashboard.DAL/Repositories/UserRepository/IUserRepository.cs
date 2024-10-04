@@ -23,5 +23,6 @@ namespace Dashboard.DAL.Repositories.UserRepository
         Task<User?> GetUserAsync(Expression<Func<User, bool>> predicate, bool includes = false);
         Task<IdentityResult> EmailConfirmationAsync(User user, string token);
         Task<IdentityResult> ResetPasswordAsync(User user, string token, string newPassword);
+        Task<IdentityResult> SetRoleAsync(User user, string role);
     }
 }

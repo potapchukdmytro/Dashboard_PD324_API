@@ -141,6 +141,19 @@ namespace Dashboard.DAL.Repositories.UserRepository
             return result;
         }
 
+        public async Task<IdentityResult> SetRoleAsync(User user, string role)
+        {
+            if (await _userManager.IsInRoleAsync(user, role))
+            {
+                return IdentityResult.Success;
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, userRoles);
+            var result = await _userManager.AddToRoleAsync(user, role);
+            return result;
+        }
+
         public async Task<User?> SignUpAsync(User model, string password)
         {
             var result = await _userManager.CreateAsync(model, password);

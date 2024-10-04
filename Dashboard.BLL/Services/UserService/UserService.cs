@@ -96,7 +96,7 @@ namespace Dashboard.BLL.Services.UserService
 
         public async Task<ServiceResponse> GetByEmailAsync(string email)
         {
-            var user = await _userRepository.GetUserByEmailAsync(email);
+            var user = await _userRepository.GetUserByEmailAsync(email, true);
 
             if (user == null)
             {
@@ -110,7 +110,7 @@ namespace Dashboard.BLL.Services.UserService
 
         public async Task<ServiceResponse> GetByIdAsync(string id)
         {
-            var user = await _userRepository.GetUserByIdAsync(id);
+            var user = await _userRepository.GetUserByIdAsync(id, true);
 
             if (user == null)
             {
@@ -124,7 +124,7 @@ namespace Dashboard.BLL.Services.UserService
 
         public async Task<ServiceResponse> GetByUserNameAsync(string userName)
         {
-            var user = await _userRepository.GetUserByNameAsync(userName);
+            var user = await _userRepository.GetUserByNameAsync(userName, true);
 
             if (user == null)
             {
@@ -138,7 +138,7 @@ namespace Dashboard.BLL.Services.UserService
 
         public async Task<ServiceResponse> UpdateAsync(UserVM model)
         {
-            var user = await _userRepository.GetUserByIdAsync(model.Id.ToString());
+            var user = await _userRepository.GetUserByIdAsync(model.Id.ToString(), true);
 
             if (user == null)
             {
@@ -167,8 +167,16 @@ namespace Dashboard.BLL.Services.UserService
 
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
+            user.EmailConfirmed = model.EmailConfirmed;
+            user.PhoneNumberConfirmed = model.PhoneNumberConfirmed;
+            user.PhoneNumber = model.PhoneNumber;
 
             var updateResult = await _userRepository.UpdateAsync(user);
+
+            if (user.UserRoles.First().Role.NormalizedName != model.Role.ToUpper())
+            {
+                await _userRepository.SetRoleAsync(user, model.Role);
+            }
 
             if (updateResult.Succeeded)
             {
