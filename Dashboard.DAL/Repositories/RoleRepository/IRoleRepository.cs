@@ -7,7 +7,7 @@ namespace Dashboard.DAL.Repositories.RoleRepository
     {
         Task<List<Role>> GetAllAsync();
         Task<bool> IsUniqueNameAsync(string name);
-        Task<Role?> GetByNameAsync(string name, bool includes = false);
+        Task<Role?> GetByNameAsync(string name);
         Task<Role?> GetByIdAsync(Guid id);
         Task<IdentityResult> CreateAsync(Role model);
         Task<IdentityResult> UpdateAsync(Role model);

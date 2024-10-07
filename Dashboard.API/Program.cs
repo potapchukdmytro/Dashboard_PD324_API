@@ -12,6 +12,7 @@ using Dashboard.DAL.Repositories.UserRepository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -133,7 +134,17 @@ app.UseCors(MyAllowSpecificOrigins);
 
 app.UseMiddleware<MiddlewareExceptionHandling>();
 
-app.UseStaticFiles("/wwwroot");
+//app.UseStaticFiles("/wwwroot");
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    // шлях до папки з файлами
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.WebRootPath, "images", "users")),
+
+    // URL адреса до цієї папки
+    RequestPath = "/user"
+});
 
 app.UseHttpsRedirection();
 

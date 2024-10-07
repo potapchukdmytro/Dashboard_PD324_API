@@ -1,5 +1,4 @@
-﻿using Dashboard.DAL.ViewModels;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace Dashboard.BLL.Services.ImageService
 {

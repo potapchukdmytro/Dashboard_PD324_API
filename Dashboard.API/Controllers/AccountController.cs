@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 namespace Dashboard.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class AccountController : BaseController
     {
         private readonly IAccountService _accountService;

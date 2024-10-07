@@ -36,16 +36,8 @@ namespace Dashboard.DAL.Repositories.RoleRepository
             return await _roleManager.FindByIdAsync(id.ToString());
         }
 
-        public async Task<Role?> GetByNameAsync(string name, bool includes = false)
+        public async Task<Role?> GetByNameAsync(string name)
         {
-            if(includes)
-            {
-                return await _roleManager.Roles
-                    .Include(r => r.UserRoles)
-                    .ThenInclude(ur => ur.User)
-                    .FirstOrDefaultAsync(r => r.NormalizedName == name.ToUpper());
-            }
-
             return await _roleManager.FindByNameAsync(name);
         }
 

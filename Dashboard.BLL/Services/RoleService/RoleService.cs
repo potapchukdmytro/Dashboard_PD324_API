@@ -67,18 +67,28 @@ namespace Dashboard.BLL.Services.RoleService
             return ServiceResponse.GetOkResponse("Ролі отримано", models);
         }
 
-        public async Task<ServiceResponse> GetByNameAsync(string name)
+        public async Task<ServiceResponse> GetAsync<T>(Func<T, Task<Role?>> func, T value)
         {
-            var role = await _roleRepository.GetByNameAsync(name);
+            var role = await func(value);
 
-            if(role == null)
+            if (role == null)
             {
-                return ServiceResponse.GetBadRequestResponse($"Роль {name} не знайдена");
+                return ServiceResponse.GetBadRequestResponse($"Роль не знайдена");
             }
 
             var model = _mapper.Map<RoleVM>(role);
 
-            return ServiceResponse.GetOkResponse($"Роль {name}", model);
+            return ServiceResponse.GetOkResponse($"Роль отримана", model);
+        }
+
+        public async Task<ServiceResponse> GetByIdAsync(string id)
+        {
+            return await GetAsync(_roleRepository.GetByIdAsync, Guid.Parse(id));
+        }
+
+        public async Task<ServiceResponse> GetByNameAsync(string name)
+        {
+            return await GetAsync(_roleRepository.GetByNameAsync, name);
         }
 
         public async Task<ServiceResponse> UpdateAsync(RoleVM model)

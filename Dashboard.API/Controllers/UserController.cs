@@ -11,7 +11,7 @@ namespace Dashboard.API.Controllers
     [ApiController]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Authorize(Roles = "admin")]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class UserController : BaseController
     {
         private readonly IUserService _userService;

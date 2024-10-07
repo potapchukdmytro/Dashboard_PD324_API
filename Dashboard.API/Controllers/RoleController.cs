@@ -1,11 +1,12 @@
-﻿using Dashboard.BLL.Services.RoleService;
+﻿using Dashboard.BLL.Services;
+using Dashboard.BLL.Services.RoleService;
 using Dashboard.DAL.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Dashboard.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class RoleController : BaseController
     {
         private readonly IRoleService _roleService;
@@ -15,23 +16,41 @@ namespace Dashboard.API.Controllers
             _roleService = roleService;
         }
 
-        [HttpGet("roles")]
-        public async Task<IActionResult> GetAll()
-        {
-            var response = await _roleService.GetAllAsync();
-            return await GetResultAsync(response);
-        }
-
         [HttpGet]
-        public async Task<IActionResult> Get(string name)
+        public async Task<IActionResult> Get([FromQuery] string? id, string? name)
         {
-            if (string.IsNullOrEmpty(name))
+            id = Request.Query[nameof(id)];
+            name = Request.Query[nameof(name)];
+
+            if(id == null && name == null)
             {
-                return NotFound();
+                var response = await _roleService.GetAllAsync();
+                if(response.Success)
+                {
+                    return await GetResultAsync(response);
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    var response = await _roleService.GetByNameAsync(name);
+                    if (response.Success)
+                    {
+                        return await GetResultAsync(response);
+                    }
+                }
+                if (!string.IsNullOrWhiteSpace(id))
+                {
+                    var response = await _roleService.GetByIdAsync(id);
+                    if (response.Success)
+                    {
+                        return await GetResultAsync(response);
+                    }
+                }
             }
 
-            var response = await _roleService.GetByNameAsync(name);
-            return await GetResultAsync(response);
+            return await GetResultAsync(ServiceResponse.GetBadRequestResponse("Не вдалося отримати ролі"));
         }
 
         [HttpPost]
