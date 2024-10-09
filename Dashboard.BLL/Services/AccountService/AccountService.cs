@@ -1,14 +1,12 @@
 ﻿using AutoMapper;
 using Dashboard.BLL.Services.EmailService;
+using Dashboard.BLL.Services.JwtService;
 using Dashboard.DAL;
 using Dashboard.DAL.Models.Identity;
 using Dashboard.DAL.Repositories.UserRepository;
 using Dashboard.DAL.ViewModels;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
 
 namespace Dashboard.BLL.Services.AccountService
@@ -19,13 +17,15 @@ namespace Dashboard.BLL.Services.AccountService
         private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly IJwtService _jwtService;
 
-        public AccountService(IEmailService emailService, IConfiguration configuration, IUserRepository userRepository, IMapper mapper)
+        public AccountService(IEmailService emailService, IConfiguration configuration, IUserRepository userRepository, IMapper mapper, IJwtService jwtService)
         {
             _emailService = emailService;
             _configuration = configuration;
             _userRepository = userRepository;
             _mapper = mapper;
+            _jwtService = jwtService;
         }
 
         public async Task<ServiceResponse> SignUpAsync(SignUpVM model)
@@ -79,44 +79,21 @@ namespace Dashboard.BLL.Services.AccountService
                     return ServiceResponse.GetBadRequestResponse(message: "Не успішний вхід", errors: "Пошта або пароль вказані невірно");
                 }
 
-                if(!user.EmailConfirmed)
+                if (!user.EmailConfirmed)
                 {
                     return ServiceResponse.GetBadRequestResponse(message: "Не успішний вхід", errors: "Необхідно підтвердити пошту");
                 }
 
-                var claims = new List<Claim>
-                {
-                    new Claim("id", user.Id.ToString()),
-                    new Claim("email", user.Email ?? "no email")
-                };
+                var response = await _jwtService.GenerateTokensAsync(user);
 
-                var roleClaims = user.UserRoles.Select(ur => new Claim("role", ur.Role.Name));
-
-                if(roleClaims.Count() > 0)
+                if (response.Success)
                 {
-                    claims.AddRange(roleClaims);
+                    return ServiceResponse.GetOkResponse("Успішний вхід", response.Payload);
                 }
                 else
                 {
-                    claims.Add(new Claim("role", Settings.UserRole));
+                    return ServiceResponse.GetBadRequestResponse("Не вдалося увійти", errors: response.Errors.ToArray());
                 }
-
-                var issuer = _configuration["AuthSettings:issuer"];
-                var audience = _configuration["AuthSettings:audience"];
-                var keyString = _configuration["AuthSettings:key"];
-                var symmetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
-
-                var token = new JwtSecurityToken(
-                    issuer: issuer,
-                    audience: audience,
-                    claims: claims,
-                    expires: DateTime.UtcNow.AddDays(1),
-                    signingCredentials: new SigningCredentials(symmetricKey, SecurityAlgorithms.HmacSha256)
-                    );
-
-                var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-
-                return ServiceResponse.GetOkResponse("Успішний вхід", jwt);
             }
             catch (Exception ex)
             {
@@ -138,7 +115,7 @@ namespace Dashboard.BLL.Services.AccountService
 
             var result = await _userRepository.EmailConfirmationAsync(user, validToken);
 
-            if(result.Succeeded)
+            if (result.Succeeded)
             {
                 return ServiceResponse.GetOkResponse("Пошта успішно підтверджена");
             }
@@ -180,7 +157,7 @@ namespace Dashboard.BLL.Services.AccountService
 
             var result = await _userRepository.ResetPasswordAsync(user, validToken, model.Password);
 
-            if(!result.Succeeded)
+            if (!result.Succeeded)
             {
                 return ServiceResponse.GetBadRequestResponse("Не вдалося скинути пароль", errors: result.Errors.Select(e => e.Description).ToArray());
             }

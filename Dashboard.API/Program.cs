@@ -1,12 +1,17 @@
 using Dashboard.BLL.Middlewares;
 using Dashboard.BLL.Services.AccountService;
+using Dashboard.BLL.Services.CategoryService;
 using Dashboard.BLL.Services.EmailService;
 using Dashboard.BLL.Services.ImageService;
+using Dashboard.BLL.Services.JwtService;
+using Dashboard.BLL.Services.ProductService;
 using Dashboard.BLL.Services.RoleService;
 using Dashboard.BLL.Services.UserService;
 using Dashboard.DAL;
 using Dashboard.DAL.Initializer;
 using Dashboard.DAL.Models.Identity;
+using Dashboard.DAL.Repositories.CategoryRepository;
+using Dashboard.DAL.Repositories.ProductRepository;
 using Dashboard.DAL.Repositories.RoleRepository;
 using Dashboard.DAL.Repositories.UserRepository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -78,10 +83,15 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 
 // Add repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 builder.Services.AddControllers();
 

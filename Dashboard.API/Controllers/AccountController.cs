@@ -1,4 +1,5 @@
 ﻿using Dashboard.BLL.Services.AccountService;
+using Dashboard.BLL.Services.JwtService;
 using Dashboard.BLL.Validators;
 using Dashboard.DAL.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,12 @@ namespace Dashboard.API.Controllers
     public class AccountController : BaseController
     {
         private readonly IAccountService _accountService;
+        private readonly IJwtService _jwtService;
 
-        public AccountController(IAccountService accountService)
+        public AccountController(IAccountService accountService, IJwtService jwtService)
         {
             _accountService = accountService;
+            _jwtService = jwtService;
         }
 
         [HttpPost("SignUp")]
@@ -117,6 +120,13 @@ namespace Dashboard.API.Controllers
             }
 
             return NotFound();
+        }
+
+        [HttpGet("testTokens")]
+        public async Task<IActionResult> TestRefreshTokensAsync(string refreshToken, string accessToken)
+        {
+            var response = await _jwtService.RefreshTokensAsync(refreshToken, accessToken);
+            return await GetResultAsync(response);
         }
     }
 }
