@@ -87,7 +87,7 @@ namespace Dashboard.API.Controllers
             return await GetResultAsync(response);
         }
 
-        [HttpPost("resetpassword")]
+        [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPasswordAsync([FromForm] ResetPasswordVM model)
         {
             var validator = new ResetPasswordValidator();
@@ -108,7 +108,7 @@ namespace Dashboard.API.Controllers
             return NotFound();
         }
 
-        [HttpPost("refreshAuth")]
+        [HttpPost("RefreshTokens")]
         public async Task<IActionResult> RefreshTokensAsync([FromBody] JwtVM model)
         {
             if(string.IsNullOrEmpty(model.RefreshToken) ||
