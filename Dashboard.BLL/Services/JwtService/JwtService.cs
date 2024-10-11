@@ -143,7 +143,7 @@ namespace Dashboard.BLL.Services.JwtService
 
             if(user == null)
             {
-                throw new ArgumentException($"User by id {storedToken.UserId} not found");
+                return ServiceResponse.GetBadRequestResponse($"User by id {storedToken.UserId} not found", errors: $"Користувача з id {storedToken.UserId} не знайдено");
             }
 
             var response = await GenerateTokensAsync(user);

@@ -95,7 +95,8 @@ namespace Dashboard.DAL.Repositories.UserRepository
         {
             var users = _userManager.Users
                 .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role);
+                .ThenInclude(ur => ur.Role)
+                .AsNoTracking();
 
             return await users.ToListAsync();
         }

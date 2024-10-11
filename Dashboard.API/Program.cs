@@ -73,7 +73,8 @@ builder.Services.AddAuthentication(options =>
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["AuthSettings:key"])),
             ValidAudience = builder.Configuration["AuthSettings:audience"],
-            ValidIssuer = builder.Configuration["AuthSettings:issuer"]
+            ValidIssuer = builder.Configuration["AuthSettings:issuer"],
+            ValidateLifetime = true
         };
     });
 
@@ -143,6 +144,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors(MyAllowSpecificOrigins);
 
 app.UseMiddleware<MiddlewareExceptionHandling>();
+app.UseMiddleware<MiddlewareJwtTokenExceptionHandling>();
 
 //app.UseStaticFiles("/wwwroot");
 

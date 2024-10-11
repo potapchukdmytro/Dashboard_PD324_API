@@ -56,7 +56,9 @@ namespace Dashboard.BLL.Services.AccountService
 
             await _userRepository.AddToRoleAsync(user.Id.ToString(), Settings.UserRole);
 
-            return ServiceResponse.GetOkResponse("Успішна реєстрація", "token");
+            var tokens = await _jwtService.GenerateTokensAsync(user);
+
+            return ServiceResponse.GetOkResponse("Успішна реєстрація", tokens.Payload);
         }
 
         public async Task<ServiceResponse> SignInAsync(SignInVM model)

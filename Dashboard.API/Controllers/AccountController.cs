@@ -1,4 +1,5 @@
-﻿using Dashboard.BLL.Services.AccountService;
+﻿using Dashboard.BLL.Services;
+using Dashboard.BLL.Services.AccountService;
 using Dashboard.BLL.Services.JwtService;
 using Dashboard.BLL.Validators;
 using Dashboard.DAL.ViewModels;
@@ -26,23 +27,8 @@ namespace Dashboard.API.Controllers
             var validator = new SignUpValidator();
             var validateResult = await validator.ValidateAsync(model);
 
-            if(validateResult.IsValid)
-            {
-                var response = await _accountService.SignUpAsync(model);
-
-                if(response.Success)
-                {
-                    return Ok(response);
-                }
-                else
-                {
-                    return BadRequest(response); 
-                }
-            }
-            else
-            {
-                return BadRequest(validateResult.Errors);
-            }
+            var response = await _accountService.SignUpAsync(model);
+            return await GetResultAsync(response);
         }
 
         [HttpPost("SignIn")]
@@ -51,7 +37,7 @@ namespace Dashboard.API.Controllers
             var validator = new SignInValidator();
             var validationResult = await validator.ValidateAsync(model);
 
-            if(!validationResult.IsValid)
+            if (!validationResult.IsValid)
             {
                 return BadRequest(validationResult.Errors);
             }
@@ -64,14 +50,14 @@ namespace Dashboard.API.Controllers
         [HttpGet("EmailConfirmation")]
         public async Task<IActionResult> EmailConfirmationAsync(string? u, string? t)
         {
-            if(string.IsNullOrEmpty(u) || string.IsNullOrEmpty(t))
+            if (string.IsNullOrEmpty(u) || string.IsNullOrEmpty(t))
             {
                 return NotFound();
             }
 
             var response = await _accountService.EmailConfirmationAsync(u, t);
 
-            if(response.Success)
+            if (response.Success)
             {
                 return Redirect("http://localhost:3000");
             }
@@ -84,7 +70,7 @@ namespace Dashboard.API.Controllers
         [HttpGet("ForgotPassword")]
         public async Task<IActionResult> ForgotPasswordAsync(string? email)
         {
-            if(string.IsNullOrEmpty(email))
+            if (string.IsNullOrEmpty(email))
             {
                 return BadRequest("Пошта не може бути порожньою");
             }
@@ -107,14 +93,14 @@ namespace Dashboard.API.Controllers
             var validator = new ResetPasswordValidator();
             var result = await validator.ValidateAsync(model);
 
-            if(!result.IsValid)
+            if (!result.IsValid)
             {
                 return NotFound();
             }
 
             var response = await _accountService.ResetPasswordAsync(model);
 
-            if(response.Success)
+            if (response.Success)
             {
                 return Redirect("https://mydashboard.com/signin");
             }
@@ -122,10 +108,16 @@ namespace Dashboard.API.Controllers
             return NotFound();
         }
 
-        [HttpGet("testTokens")]
-        public async Task<IActionResult> TestRefreshTokensAsync(string refreshToken, string accessToken)
+        [HttpPost("refreshAuth")]
+        public async Task<IActionResult> RefreshTokensAsync([FromBody] JwtVM model)
         {
-            var response = await _jwtService.RefreshTokensAsync(refreshToken, accessToken);
+            if(string.IsNullOrEmpty(model.RefreshToken) ||
+                string.IsNullOrEmpty(model.AccessToken))
+            {
+                return await GetResultAsync(ServiceResponse.GetBadRequestResponse("Invalid tokens", errors: "Invalid tokens"));
+            }
+
+            var response = await _jwtService.RefreshTokensAsync(model.RefreshToken, model.AccessToken);
             return await GetResultAsync(response);
         }
     }
