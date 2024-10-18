@@ -27,8 +27,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add database context
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    //options.UseNpgsql("name=PostgreSql");
-    options.UseSqlServer("name=MsSql");
+    //options.UseNpgsql("name=PostgreSqlLocal");
+    options.UseNpgsql("name=PostgreSqlElephant");
+    //options.UseSqlServer("name=MsSql");
 });
 
 // Add CORS
@@ -135,11 +136,14 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors(MyAllowSpecificOrigins);
 
