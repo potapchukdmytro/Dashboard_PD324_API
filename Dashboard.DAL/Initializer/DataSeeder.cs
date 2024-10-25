@@ -2,6 +2,7 @@
 using Dashboard.DAL.Models.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Dashboard.DAL.Initializer
@@ -15,6 +16,8 @@ namespace Dashboard.DAL.Initializer
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
                 var roleManger = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                await context.Database.MigrateAsync();
 
                 if (!roleManger.Roles.Any())
                 {
