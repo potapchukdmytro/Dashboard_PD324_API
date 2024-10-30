@@ -21,5 +21,11 @@ namespace Dashboard.API.Controllers
             var response = await _categoryService.CreateAsync(model);
             return await GetResultAsync(response);
         }
+
+        [HttpGet]
+        public IActionResult HelloWorld()
+        {
+            return Ok("Hello world");
+        }
     }
 }
