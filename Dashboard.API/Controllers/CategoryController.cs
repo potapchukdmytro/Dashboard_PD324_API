@@ -27,5 +27,11 @@ namespace Dashboard.API.Controllers
         {
             return Ok("Hello world");
         }
+
+        [HttpGet]
+        public IActionResult HelloJenkins()
+        {
+            return Ok("Hello Jenkins.");
+        }
     }
 }
