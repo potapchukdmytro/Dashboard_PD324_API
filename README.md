@@ -15,8 +15,8 @@ docker images --all
 docker rmi dashboard-api
 
 docker login
-docker tag dashboard-api:latest potapchuk22/dashboard-api:latest
-docker push potapchuk22/dashboard-api:latest
+docker tag dashboard-front:latest potapchuk22/dashboard-front:latest
+docker push potapchuk22/dashboard-front:latest
 
 docker pull potapchuk22/dashboard-api:latest
 docker ps -a

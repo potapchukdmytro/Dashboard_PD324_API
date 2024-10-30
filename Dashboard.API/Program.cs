@@ -27,8 +27,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add database context
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
+    options.UseNpgsql("name=PostgreSqlAWS");
     //options.UseNpgsql("name=PostgreSqlLocal");
-    options.UseNpgsql("name=PostgreSqlElephant");
+    //options.UseNpgsql("name=PostgreSqlElephant");
     //options.UseSqlServer("name=MsSql");
 });
 
@@ -40,7 +41,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("http://localhost:3000")
+                          policy.WithOrigins("http://34.236.159.53:3000", "http://pd324dashboard.pp.ua/", "http://pd324dashboard.pp.ua:3000/")
                           .AllowAnyMethod()
                           .AllowAnyHeader();
                       });
