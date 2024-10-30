@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: qwerty
+      POSTGRES_DB: testdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  webapi:
+    image: sweetdie/dashboard-api
+    restart: always
+    ports:
+      - "5001:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__PostgreSqlUbuntu: "User ID=admin;Password=qwerty;Host=postgres;Port=5432;Database=testdb;"
+    volumes:
+      - /volumes/dashboard/images/users:/app/wwwroot/images/users
+      - /volumes/dashboard/templates:/app/wwwroot/templates
+    depends_on:
+      - postgres
+
+  react:
+    image: sweetdie/dashboard-front
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_API_URL: http://localhost:5001/api/
+      REACT_APP_SERVER_URL: http://localhost:5001/
+      REACT_APP_USER_IMAGE: http://localhost:5001/user/
+    depends_on:
+      - webapi
+
+volumes:
+  postgres_data:
