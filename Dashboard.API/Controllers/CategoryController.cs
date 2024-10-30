@@ -22,13 +22,13 @@ namespace Dashboard.API.Controllers
             return await GetResultAsync(response);
         }
 
-        [HttpGet]
+        [HttpGet("world")]
         public IActionResult HelloWorld()
         {
             return Ok("Hello world");
         }
 
-        [HttpGet]
+        [HttpGet("jenkins")]
         public IActionResult HelloJenkins()
         {
             return Ok("Hello Jenkins.");
