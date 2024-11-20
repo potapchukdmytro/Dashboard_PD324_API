@@ -6,6 +6,7 @@ using Dashboard.BLL.Services.ImageService;
 using Dashboard.BLL.Services.JwtService;
 using Dashboard.BLL.Services.ProductService;
 using Dashboard.BLL.Services.RoleService;
+using Dashboard.BLL.Services.TestService;
 using Dashboard.BLL.Services.UserService;
 using Dashboard.DAL;
 using Dashboard.DAL.Initializer;
@@ -13,6 +14,7 @@ using Dashboard.DAL.Models.Identity;
 using Dashboard.DAL.Repositories.CategoryRepository;
 using Dashboard.DAL.Repositories.ProductRepository;
 using Dashboard.DAL.Repositories.RoleRepository;
+using Dashboard.DAL.Repositories.TestRepository;
 using Dashboard.DAL.Repositories.UserRepository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -27,8 +29,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add database context
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    options.UseNpgsql("name=PostgreSqlAWS");
-    //options.UseNpgsql("name=PostgreSqlLocal");
+    //options.UseNpgsql("name=PostgreSqlAWS");
+    options.UseNpgsql("name=PostgreSqlLocal");
     //options.UseNpgsql("name=PostgreSqlElephant");
     //options.UseSqlServer("name=MsSql");
 });
@@ -41,7 +43,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("http://34.236.159.53:3000", "http://pd324dashboard.pp.ua/", "http://pd324dashboard.pp.ua:3000/")
+                          policy.WithOrigins("http://34.236.159.53:3000", "http://pd324dashboard.pp.ua", "http://pd324dashboard.pp.ua:3000", "http://localhost:3000")
                           .AllowAnyMethod()
                           .AllowAnyHeader();
                       });
@@ -89,12 +91,14 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<ITestService, TestService>();
 
 // Add repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ITestRepository, TestRepository>();
 
 builder.Services.AddControllers();
 

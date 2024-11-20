@@ -29,14 +29,24 @@ namespace Dashboard.BLL.Services.EmailService
             string? host = _configuration["Host:Address"];
             string confirmUrl = $"{host}Account/EmailConfirmation?u={model.Id}&t={validateToken}";
             string htmlPath = Path.Combine(_webHostEnvironment.WebRootPath, "templates", "confirmemail.html");
-            string html = File.ReadAllText(htmlPath);
-            html = html.Replace("confirmUrl", confirmUrl);
 
-            string emailBody = html;
-            await SendEmailAsync(model.Email, "Підтвердження", emailBody);
+            string emailBody = string.Empty;
+
+            if (!File.Exists(htmlPath))
+            {
+                emailBody = confirmUrl;
+                await SendEmailAsync(model.Email, "Підтвердження", emailBody);
+            }
+            else
+            {
+                string html = File.ReadAllText(htmlPath);
+                html = html.Replace("confirmUrl", confirmUrl);
+                emailBody = html;
+                await SendEmailAsync(model.Email, "Підтвердження", emailBody, true);
+            }
         }
 
-        public async Task SendEmailAsync(string emailTo, string subject, string body)
+        public async Task SendEmailAsync(string emailTo, string subject, string body, bool isHtml = false)
         {
             try
             {
@@ -52,7 +62,16 @@ namespace Dashboard.BLL.Services.EmailService
 
                 //html body
                 var bodyBuilder = new BodyBuilder();
-                bodyBuilder.HtmlBody = body;
+
+                if(isHtml)
+                {
+                    bodyBuilder.HtmlBody = body;
+                }
+                else
+                {
+                    bodyBuilder.TextBody = body;
+                }
+
                 message.Body = bodyBuilder.ToMessageBody();                
 
                 using (var client = new SmtpClient())

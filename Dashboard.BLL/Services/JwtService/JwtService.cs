@@ -49,7 +49,9 @@ namespace Dashboard.BLL.Services.JwtService
             {
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim("id", user.Id.ToString()),
-                new Claim("email", user.Email ?? "no email")
+                new Claim("email", user.Email ?? "no email"),
+                new Claim("firstName", user.FirstName ?? "no first name"),
+                new Claim("lastName", user.LastName ?? "no last name")
             };
 
             var roleClaims = user.UserRoles.Select(ur => new Claim("role", ur.Role.Name));

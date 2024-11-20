@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Dashboard.DAL.Models.Tests;
+using Microsoft.AspNetCore.Identity;
 
 namespace Dashboard.DAL.Models.Identity
 {
@@ -12,5 +13,6 @@ namespace Dashboard.DAL.Models.Identity
         public virtual ICollection<UserLogin> Logins { get; set; }
         public virtual ICollection<UserToken> Tokens { get; set; }
         public virtual ICollection<UserRole> UserRoles { get; set; }
+        public List<Test> Tests { get; set; } = new();
     }
 }
