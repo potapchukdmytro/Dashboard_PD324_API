@@ -43,7 +43,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("http://34.236.159.53:3000", "http://pd324dashboard.pp.ua", "http://pd324dashboard.pp.ua:3000", "http://localhost:3000")
+                          policy.AllowAnyOrigin()
                           .AllowAnyMethod()
                           .AllowAnyHeader();
                       });
